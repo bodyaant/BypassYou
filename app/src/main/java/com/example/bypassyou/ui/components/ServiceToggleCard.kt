@@ -19,6 +19,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+import com.example.bypassyou.ui.theme.cardContainerColor
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ServiceToggleCard(
@@ -27,7 +29,7 @@ fun ServiceToggleCard(
     modifier: Modifier = Modifier
 ) {
     val statusBgColor by animateColorAsState(
-        targetValue = if (isEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        targetValue = if (isEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
         label = "statusBgColor"
     )
 
@@ -37,19 +39,17 @@ fun ServiceToggleCard(
     )
 
     val iconTintColor by animateColorAsState(
-        targetValue = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        targetValue = if (isEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "iconTintColor"
     )
 
-    ElevatedCard(
+    Surface(
         modifier = modifier
             .fillMaxWidth()
             .expressiveClickable { onToggle(!isEnabled) },
         shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
+        color = MaterialTheme.cardContainerColor,
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier
@@ -120,11 +120,7 @@ fun ServiceToggleCard(
 
             Switch(
                 checked = isEnabled,
-                onCheckedChange = onToggle,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.surface,
-                    checkedTrackColor = MaterialTheme.colorScheme.primary
-                )
+                onCheckedChange = onToggle
             )
         }
     }

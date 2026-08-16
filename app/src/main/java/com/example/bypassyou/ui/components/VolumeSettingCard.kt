@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.bypassyou.ui.theme.cardContainerColor
 
 @Composable
 fun VolumeSettingCard(
@@ -19,13 +20,11 @@ fun VolumeSettingCard(
     onTestSound: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    ElevatedCard(
+    Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
+        color = MaterialTheme.cardContainerColor,
+        tonalElevation = 0.dp
     ) {
         Column(
             modifier = Modifier
@@ -65,12 +64,12 @@ fun VolumeSettingCard(
 
                 Surface(
                     shape = RoundedCornerShape(14.dp),
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Text(
                         text = "$volumePercent%",
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                     )
                 }
@@ -81,21 +80,14 @@ fun VolumeSettingCard(
             Slider(
                 value = volumePercent.toFloat(),
                 onValueChange = { onVolumeChange(it.toInt()) },
-                valueRange = 5f..100f,
-                colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.primary,
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                valueRange = 5f..100f
             )
 
             Spacer(modifier = Modifier.height(6.dp))
 
             Button(
                 onClick = onTestSound,
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .expressiveClickable { onTestSound() },
+                modifier = Modifier.align(Alignment.End),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,

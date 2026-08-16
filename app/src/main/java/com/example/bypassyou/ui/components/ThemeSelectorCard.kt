@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.bypassyou.ui.theme.cardContainerColor
 
 private data class ThemeOption(
     val key: String,
@@ -45,13 +46,11 @@ fun ThemeSelectorCard(
         )
     }
 
-    ElevatedCard(
+    Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
+        color = MaterialTheme.cardContainerColor,
+        tonalElevation = 0.dp
     ) {
         Column(
             modifier = Modifier
@@ -131,7 +130,7 @@ fun ThemeSelectorCard(
 
                     val bgColor by animateColorAsState(
                         targetValue = if (isSelected) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        else MaterialTheme.colorScheme.surfaceContainerHighest,
                         label = "themeBg_$index"
                     )
 

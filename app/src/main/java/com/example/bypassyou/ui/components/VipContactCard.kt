@@ -16,7 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.bypassyou.data.model.VipContact
-import com.example.bypassyou.ui.theme.ExpressiveCoralAlert
+import com.example.bypassyou.ui.theme.cardContainerColor
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -28,8 +28,8 @@ fun VipContactCard(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-        tonalElevation = 1.dp
+        color = MaterialTheme.cardContainerColor,
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier
@@ -101,13 +101,12 @@ fun VipContactCard(
             }
 
             IconButton(
-                onClick = onDelete,
-                modifier = Modifier.expressiveClickable { onDelete() }
+                onClick = onDelete
             ) {
                 Icon(
                     imageVector = Icons.Default.DeleteOutline,
                     contentDescription = "Remove contact",
-                    tint = ExpressiveCoralAlert
+                    tint = MaterialTheme.colorScheme.error
                 )
             }
         }

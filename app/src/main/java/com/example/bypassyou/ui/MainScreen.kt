@@ -28,6 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.example.bypassyou.ui.components.*
 
+import com.example.bypassyou.ui.theme.cardContainerColor
+import com.example.bypassyou.ui.theme.screenBackgroundColor
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
@@ -98,6 +101,7 @@ fun MainScreen(
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.screenBackgroundColor,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -115,7 +119,8 @@ fun MainScreen(
                 },
                 scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.screenBackgroundColor,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
             )
         },
@@ -186,7 +191,8 @@ fun MainScreen(
                                 onClick = { permissionLauncher.launch(requiredPermissions.toTypedArray()) },
                                 shape = RoundedCornerShape(14.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error
+                                    containerColor = MaterialTheme.colorScheme.error,
+                                    contentColor = MaterialTheme.colorScheme.onError
                                 )
                             ) {
                                 Text("Grant")
@@ -246,7 +252,8 @@ fun MainScreen(
                                 },
                                 shape = RoundedCornerShape(14.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
                                 )
                             ) {
                                 Text("Set")
@@ -315,7 +322,7 @@ fun MainScreen(
                             .padding(vertical = 8.dp),
                         shape = RoundedCornerShape(28.dp),
                         colors = CardDefaults.outlinedCardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            containerColor = MaterialTheme.cardContainerColor
                         )
                     ) {
                         Column(

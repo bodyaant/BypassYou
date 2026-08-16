@@ -40,8 +40,8 @@ fun ExpressiveFabMenu(
             )
         },
         shape = RoundedCornerShape(24.dp),
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         elevation = FloatingActionButtonDefaults.elevation(
             defaultElevation = 6.dp,
             pressedElevation = 10.dp
@@ -53,7 +53,7 @@ fun ExpressiveFabMenu(
         ModalBottomSheet(
             onDismissRequest = { showMenuSheet = false },
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
             Column(
                 modifier = Modifier
