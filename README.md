@@ -12,7 +12,7 @@
     <a href="https://github.com/bodyaant/BypassYou/releases">
       <img src="https://img.shields.io/github/downloads/bodyaant/BypassYou/total?logo=github&labelColor=1a1a1a&color=625B71&style=flat-square" alt="Total Downloads">
     </a>
-    <a href="https://github.com/bodyaant/SmokingYou/stargazers">
+    <a href="https://github.com/bodyaant/BypassYou/stargazers">
       <img src="https://img.shields.io/github/stars/bodyaant/BypassYou?logo=github&labelColor=1a1a1a&color=E0B6FF&style=flat-square" alt="Stars">
     </a>
     <a href="LICENSE">
