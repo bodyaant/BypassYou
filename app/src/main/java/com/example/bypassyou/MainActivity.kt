@@ -37,4 +37,10 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        mainViewModel.refreshSystemIntegrity()
+        mainViewModel.refreshEventLogs()
+    }
 }

@@ -6,11 +6,15 @@ import android.net.Uri
 import android.provider.ContactsContract
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import com.example.bypassyou.data.model.CallEventLog
 import com.example.bypassyou.data.model.VipContact
+import com.example.bypassyou.data.repository.EventLogRepository
 import com.example.bypassyou.data.repository.SettingsRepository
 import com.example.bypassyou.data.repository.VipRepository
 import com.example.bypassyou.service.AudioBypassManager
 import com.example.bypassyou.service.BypassForegroundService
+import com.example.bypassyou.service.BypassTileService
+import com.example.bypassyou.util.SystemIntegrityHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,22 +24,91 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val vipRepository = VipRepository(application)
     private val settingsRepository = SettingsRepository(application)
+    private val eventLogRepository = EventLogRepository(application)
     private val audioBypassManager = AudioBypassManager.getInstance(application)
+
+    private val audioManager = application.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+
+    val maxRingVolumeIndex: Int = audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_RING).let { if (it <= 0) 15 else it }
+    val minRingVolumeIndex: Int = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+        audioManager.getStreamMinVolume(android.media.AudioManager.STREAM_RING).coerceAtLeast(0)
+    } else {
+        0
+    }
 
     private val _vipContacts = MutableStateFlow<List<VipContact>>(emptyList())
     val vipContacts: StateFlow<List<VipContact>> = _vipContacts.asStateFlow()
 
+    private val _eventLogs = MutableStateFlow<List<CallEventLog>>(emptyList())
+    val eventLogs: StateFlow<List<CallEventLog>> = _eventLogs.asStateFlow()
+
     private val _isBypassEnabled = MutableStateFlow(settingsRepository.isBypassEnabled)
     val isBypassEnabled: StateFlow<Boolean> = _isBypassEnabled.asStateFlow()
 
-    private val _targetVolumePercent = MutableStateFlow(settingsRepository.targetVolumePercent)
+    private val _targetVolumePercent = MutableStateFlow(
+        snapToPreset(settingsRepository.targetVolumePercent, maxRingVolumeIndex, minRingVolumeIndex)
+    )
     val targetVolumePercent: StateFlow<Int> = _targetVolumePercent.asStateFlow()
 
     private val _themeMode = MutableStateFlow(settingsRepository.themeMode)
     val themeMode: StateFlow<String> = _themeMode.asStateFlow()
 
+    private val _isStarredContactsEnabled = MutableStateFlow(settingsRepository.isStarredContactsBypassEnabled)
+    val isStarredContactsEnabled: StateFlow<Boolean> = _isStarredContactsEnabled.asStateFlow()
+
+    private val _starredContactsCount = MutableStateFlow(0)
+    val starredContactsCount: StateFlow<Int> = _starredContactsCount.asStateFlow()
+
+    private val _isAscendingVolumeEnabled = MutableStateFlow(settingsRepository.isAscendingVolumeEnabled)
+    val isAscendingVolumeEnabled: StateFlow<Boolean> = _isAscendingVolumeEnabled.asStateFlow()
+
+    private val _ascendingDurationSec = MutableStateFlow(settingsRepository.ascendingDurationSec)
+    val ascendingDurationSec: StateFlow<Int> = _ascendingDurationSec.asStateFlow()
+
+    private val _isScheduleEnabled = MutableStateFlow(settingsRepository.isScheduleEnabled)
+    val isScheduleEnabled: StateFlow<Boolean> = _isScheduleEnabled.asStateFlow()
+
+    private val _scheduleStartHour = MutableStateFlow(settingsRepository.scheduleStartHour)
+    val scheduleStartHour: StateFlow<Int> = _scheduleStartHour.asStateFlow()
+
+    private val _scheduleStartMinute = MutableStateFlow(settingsRepository.scheduleStartMinute)
+    val scheduleStartMinute: StateFlow<Int> = _scheduleStartMinute.asStateFlow()
+
+    private val _scheduleEndHour = MutableStateFlow(settingsRepository.scheduleEndHour)
+    val scheduleEndHour: StateFlow<Int> = _scheduleEndHour.asStateFlow()
+
+    private val _scheduleEndMinute = MutableStateFlow(settingsRepository.scheduleEndMinute)
+    val scheduleEndMinute: StateFlow<Int> = _scheduleEndMinute.asStateFlow()
+
+    private val _scheduleDays = MutableStateFlow(settingsRepository.scheduleDays)
+    val scheduleDays: StateFlow<Set<String>> = _scheduleDays.asStateFlow()
+
+    // System Health Matrix State
+    private val _isIgnoringBatteryOpt = MutableStateFlow(false)
+    val isIgnoringBatteryOpt: StateFlow<Boolean> = _isIgnoringBatteryOpt.asStateFlow()
+
+    private val _isDndAccessGranted = MutableStateFlow(false)
+    val isDndAccessGranted: StateFlow<Boolean> = _isDndAccessGranted.asStateFlow()
+
+    private val _isCallScreeningRoleHeld = MutableStateFlow(false)
+    val isCallScreeningRoleHeld: StateFlow<Boolean> = _isCallScreeningRoleHeld.asStateFlow()
+
+    private val _hasPhonePermissions = MutableStateFlow(false)
+    val hasPhonePermissions: StateFlow<Boolean> = _hasPhonePermissions.asStateFlow()
+
+    private val _hasContactsPermission = MutableStateFlow(false)
+    val hasContactsPermission: StateFlow<Boolean> = _hasContactsPermission.asStateFlow()
+
     init {
         loadVipContacts()
+        refreshEventLogs()
+        refreshSystemIntegrity()
+
+        val snapped = snapToPreset(settingsRepository.targetVolumePercent, maxRingVolumeIndex, minRingVolumeIndex)
+        if (snapped != settingsRepository.targetVolumePercent) {
+            settingsRepository.targetVolumePercent = snapped
+        }
+
         if (settingsRepository.isBypassEnabled) {
             try {
                 BypassForegroundService.start(getApplication())
@@ -45,8 +118,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun refreshSystemIntegrity() {
+        val app = getApplication<Application>()
+        _isIgnoringBatteryOpt.value = SystemIntegrityHelper.isIgnoringBatteryOptimizations(app)
+        _isDndAccessGranted.value = SystemIntegrityHelper.isDndPolicyAccessGranted(app)
+        _isCallScreeningRoleHeld.value = SystemIntegrityHelper.isCallScreeningRoleHeld(app)
+        _hasPhonePermissions.value = SystemIntegrityHelper.hasPhonePermissions(app)
+        _hasContactsPermission.value = SystemIntegrityHelper.hasContactsPermission(app)
+        _starredContactsCount.value = SystemIntegrityHelper.getStarredContactsCount(app)
+        _isStarredContactsEnabled.value = settingsRepository.isStarredContactsBypassEnabled
+    }
+
+    fun refreshEventLogs() {
+        _eventLogs.value = eventLogRepository.getLogs()
+    }
+
+    fun clearEventLogs() {
+        eventLogRepository.clearLogs()
+        _eventLogs.value = emptyList()
+    }
+
     fun loadVipContacts() {
         _vipContacts.value = vipRepository.getVipContacts()
+        BypassTileService.requestTileUpdate(getApplication())
     }
 
     fun toggleBypassEnabled(enabled: Boolean) {
@@ -62,18 +156,75 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } catch (e: Exception) {
             Log.w("MainViewModel", "Error toggling foreground service", e)
         }
+        BypassTileService.requestTileUpdate(getApplication())
     }
 
     fun setTargetVolumePercent(percent: Int) {
         val clamped = percent.coerceIn(0, 100)
-        settingsRepository.targetVolumePercent = clamped
-        _targetVolumePercent.value = clamped
-        audioBypassManager.updatePreviewVolume(clamped)
+        val snapped = snapToPreset(clamped, maxRingVolumeIndex, minRingVolumeIndex)
+        settingsRepository.targetVolumePercent = snapped
+        _targetVolumePercent.value = snapped
+        audioBypassManager.updatePreviewVolume(snapped)
     }
 
     fun setThemeMode(mode: String) {
         settingsRepository.themeMode = mode
         _themeMode.value = mode
+    }
+
+    fun toggleStarredBypass(enabled: Boolean) {
+        settingsRepository.isStarredContactsBypassEnabled = enabled
+        _isStarredContactsEnabled.value = enabled
+        refreshSystemIntegrity()
+    }
+
+    fun toggleAscendingVolume(enabled: Boolean) {
+        settingsRepository.isAscendingVolumeEnabled = enabled
+        _isAscendingVolumeEnabled.value = enabled
+    }
+
+    fun setAscendingDuration(seconds: Int) {
+        val clamped = seconds.coerceIn(2, 20)
+        settingsRepository.ascendingDurationSec = clamped
+        _ascendingDurationSec.value = clamped
+    }
+
+    fun toggleSchedule(enabled: Boolean) {
+        settingsRepository.isScheduleEnabled = enabled
+        _isScheduleEnabled.value = enabled
+    }
+
+    fun setScheduleTime(startHour: Int, startMinute: Int, endHour: Int, endMinute: Int) {
+        settingsRepository.scheduleStartHour = startHour
+        settingsRepository.scheduleStartMinute = startMinute
+        settingsRepository.scheduleEndHour = endHour
+        settingsRepository.scheduleEndMinute = endMinute
+
+        _scheduleStartHour.value = startHour
+        _scheduleStartMinute.value = startMinute
+        _scheduleEndHour.value = endHour
+        _scheduleEndMinute.value = endMinute
+    }
+
+    fun toggleScheduleDay(day: String) {
+        val current = _scheduleDays.value.toMutableSet()
+        if (current.contains(day)) {
+            if (current.size > 1) {
+                current.remove(day)
+            }
+        } else {
+            current.add(day)
+        }
+        settingsRepository.scheduleDays = current
+        _scheduleDays.value = current
+    }
+
+    fun requestIgnoreBatteryOptimizations() {
+        SystemIntegrityHelper.requestIgnoreBatteryOptimizations(getApplication())
+    }
+
+    fun openDndSettings() {
+        SystemIntegrityHelper.openDndPolicySettings(getApplication())
     }
 
     fun removeVipContact(contactId: String) {
@@ -92,6 +243,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             vipRepository.addVipContact(contact)
             loadVipContacts()
         }
+    }
+
+    fun addContactFromLog(log: CallEventLog) {
+        val contact = VipContact(
+            id = UUID.randomUUID().toString(),
+            name = log.contactName.ifBlank { log.phoneNumber },
+            phoneNumber = log.phoneNumber
+        )
+        vipRepository.addVipContact(contact)
+        loadVipContacts()
     }
 
     fun processPickedContactUri(contactUri: Uri) {
@@ -185,5 +346,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun playSoundPreview() {
         audioBypassManager.playPreviewSound()
+    }
+
+    private fun snapToPreset(percent: Int, maxSteps: Int, minSteps: Int): Int {
+        val safeMax = if (maxSteps <= 0) 15 else maxSteps
+        val safeMin = minSteps.coerceIn(0, safeMax - 1)
+        val step = ((percent / 100f) * safeMax).let { kotlin.math.round(it).toInt() }.coerceIn(safeMin, safeMax)
+        return ((step.toFloat() / safeMax.toFloat()) * 100f).let { kotlin.math.round(it).toInt() }
     }
 }

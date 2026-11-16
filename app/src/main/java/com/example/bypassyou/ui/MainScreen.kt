@@ -2,8 +2,6 @@ package com.example.bypassyou.ui
 
 import android.Manifest
 import android.app.role.RoleManager
-import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -11,40 +9,59 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.ContactPage
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.example.bypassyou.R
+import com.example.bypassyou.data.model.CallEventLog
+import com.example.bypassyou.data.model.VipContact
 import com.example.bypassyou.ui.components.*
-
-import com.example.bypassyou.ui.theme.cardContainerColor
 import com.example.bypassyou.ui.theme.screenBackgroundColor
+import com.example.bypassyou.ui.tokens.SpacingTokens
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MainScreen(
     viewModel: MainViewModel,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val vipContacts by viewModel.vipContacts.collectAsState()
     val isBypassEnabled by viewModel.isBypassEnabled.collectAsState()
+    val eventLogs by viewModel.eventLogs.collectAsState()
+
     val targetVolumePercent by viewModel.targetVolumePercent.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
 
+    val isIgnoringBatteryOpt by viewModel.isIgnoringBatteryOpt.collectAsState()
+    val isDndAccessGranted by viewModel.isDndAccessGranted.collectAsState()
+    val isCallScreeningRoleHeld by viewModel.isCallScreeningRoleHeld.collectAsState()
+    val hasPhonePermissions by viewModel.hasPhonePermissions.collectAsState()
+    val hasContactsPermission by viewModel.hasContactsPermission.collectAsState()
+    val isStarredContactsEnabled by viewModel.isStarredContactsEnabled.collectAsState()
+    val starredContactsCount by viewModel.starredContactsCount.collectAsState()
+    val isAscendingVolumeEnabled by viewModel.isAscendingVolumeEnabled.collectAsState()
+    val ascendingDurationSec by viewModel.ascendingDurationSec.collectAsState()
+    val isScheduleEnabled by viewModel.isScheduleEnabled.collectAsState()
+    val scheduleStartHour by viewModel.scheduleStartHour.collectAsState()
+    val scheduleStartMinute by viewModel.scheduleStartMinute.collectAsState()
+    val scheduleEndHour by viewModel.scheduleEndHour.collectAsState()
+    val scheduleEndMinute by viewModel.scheduleEndMinute.collectAsState()
+    val scheduleDays by viewModel.scheduleDays.collectAsState()
+
     var showManualAddDialog by remember { mutableStateOf(false) }
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     val requiredPermissions = remember {
         mutableStateListOf<String>().apply {
@@ -57,38 +74,30 @@ fun MainScreen(
         }
     }
 
-    var hasAllPermissions by remember {
-        mutableStateOf(
-            requiredPermissions.all {
-                ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+    // Auto-refresh diagnostics & permissions on resume
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshSystemIntegrity()
+                viewModel.refreshEventLogs()
             }
-        )
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { results ->
-        hasAllPermissions = results.values.all { it }
-    }
-
-    var isCallScreeningRoleHeld by remember {
-        mutableStateOf(
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val roleManager = context.getSystemService(RoleManager::class.java)
-                roleManager?.isRoleHeld(RoleManager.ROLE_CALL_SCREENING) == true
-            } else {
-                true
-            }
-        )
+    ) {
+        viewModel.refreshSystemIntegrity()
     }
 
     val roleLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val roleManager = context.getSystemService(RoleManager::class.java)
-            isCallScreeningRoleHeld = roleManager?.isRoleHeld(RoleManager.ROLE_CALL_SCREENING) == true
-        }
+        viewModel.refreshSystemIntegrity()
     }
 
     val contactPickerLauncher = rememberLauncherForActivityResult(
@@ -97,25 +106,28 @@ fun MainScreen(
         uri?.let { viewModel.processPickedContactUri(it) }
     }
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val allOptimal = isIgnoringBatteryOpt && isDndAccessGranted && isCallScreeningRoleHeld && hasPhonePermissions
+
+    val requestCallScreeningRoleAction: () -> Unit = {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val roleManager = context.getSystemService(RoleManager::class.java)
+            val intent = roleManager?.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING)
+            if (intent != null) {
+                roleLauncher.launch(intent)
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.screenBackgroundColor,
         topBar = {
-            CenterAlignedTopAppBar(
+            CanonicalLargeTopAppBar(
                 title = {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "BypassYou",
-                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black)
-                        )
-                        Text(
-                            text = "Material 3 Expressive Sound Bypass",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.headlineMedium
+                    )
                 },
                 scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -123,253 +135,118 @@ fun MainScreen(
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
             )
-        },
-        floatingActionButton = {
-            ExpressiveFabMenu(
-                onPickFromPhonebook = {
-                    if (!hasAllPermissions) {
-                        permissionLauncher.launch(requiredPermissions.toTypedArray())
-                    } else {
-                        contactPickerLauncher.launch(null)
-                    }
-                },
-                onAddManually = {
-                    showManualAddDialog = true
-                }
-            )
         }
     ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 100.dp, top = 12.dp)
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                top = innerPadding.calculateTopPadding() + SpacingTokens.Small,
+                bottom = innerPadding.calculateBottomPadding() + SpacingTokens.ExtraLarge
+            )
         ) {
-            if (!hasAllPermissions) {
-                item {
-                    ElevatedCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.elevatedCardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(18.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Warning,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                                Spacer(modifier = Modifier.width(14.dp))
-                                Column {
-                                    Text(
-                                        text = "Permissions Required",
-                                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                                        color = MaterialTheme.colorScheme.onErrorContainer
-                                    )
-                                    Text(
-                                        text = "Grant Phone, Call Log & Contacts access to detect incoming VIP calls.",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onErrorContainer
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Button(
-                                onClick = { permissionLauncher.launch(requiredPermissions.toTypedArray()) },
-                                shape = RoundedCornerShape(14.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error,
-                                    contentColor = MaterialTheme.colorScheme.onError
-                                )
-                            ) {
-                                Text("Grant")
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !isCallScreeningRoleHeld) {
-                item {
-                    ElevatedCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.elevatedCardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(18.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Call,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Spacer(modifier = Modifier.width(14.dp))
-                                Column {
-                                    Text(
-                                        text = "Set as Call Screening App",
-                                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                    Text(
-                                        text = "Enables guaranteed background call interception when phone is locked.",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Button(
-                                onClick = {
-                                    val roleManager = context.getSystemService(RoleManager::class.java)
-                                    val intent = roleManager?.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING)
-                                    if (intent != null) {
-                                        roleLauncher.launch(intent)
-                                    }
-                                },
-                                shape = RoundedCornerShape(14.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
-                                )
-                            ) {
-                                Text("Set")
-                            }
-                        }
-                    }
-                }
-            }
-
-            item {
+            // 1. Hero Main Service Toggle Pill (AOSP MainSwitchPreference)
+            item(key = "hero_service_toggle") {
                 ServiceToggleCard(
                     isEnabled = isBypassEnabled,
-                    onToggle = { viewModel.toggleBypassEnabled(it) }
+                    onToggle = { enabled ->
+                        if (enabled && !hasPhonePermissions) {
+                            permissionLauncher.launch(requiredPermissions.toTypedArray())
+                        }
+                        viewModel.toggleBypassEnabled(enabled)
+                    }
                 )
             }
 
-            item {
-                VolumeSettingCard(
+            // 2. Contextual Actionable Permissions Card (only shown at top if setup is incomplete)
+            if (!allOptimal) {
+                item(key = "urgent_system_health") {
+                    SystemHealthCard(
+                        isServiceActive = isBypassEnabled,
+                        isIgnoringBatteryOpt = isIgnoringBatteryOpt,
+                        isDndAccessGranted = isDndAccessGranted,
+                        isCallScreeningRoleHeld = isCallScreeningRoleHeld,
+                        hasPhonePermissions = hasPhonePermissions,
+                        onRequestBatteryOpt = { viewModel.requestIgnoreBatteryOptimizations() },
+                        onRequestDndAccess = { viewModel.openDndSettings() },
+                        onRequestCallScreeningRole = requestCallScreeningRoleAction,
+                        onRequestPhonePermissions = {
+                            permissionLauncher.launch(requiredPermissions.toTypedArray())
+                        }
+                    )
+                }
+            }
+
+            // 3. Unified "Who can reach you" Section (Starred Contacts + VIP List + Add Contact Two-Target Row)
+            item(key = "who_can_reach_section") {
+                WhoCanReachSection(
+                    isStarredContactsEnabled = isStarredContactsEnabled,
+                    hasContactsPermission = hasContactsPermission,
+                    starredContactsCount = starredContactsCount,
+                    vipContacts = vipContacts,
+                    // The switch is disabled until contacts access is granted.
+                    onToggleStarredContacts = { enabled -> viewModel.toggleStarredBypass(enabled) },
+                    onRemoveVipContact = { viewModel.removeVipContact(it) },
+                    onPickFromContacts = {
+                        if (!hasContactsPermission) {
+                            permissionLauncher.launch(requiredPermissions.toTypedArray())
+                        } else {
+                            contactPickerLauncher.launch(null)
+                        }
+                    },
+                    onAddManually = { showManualAddDialog = true }
+                )
+            }
+
+            // 4. Unified "Sound & schedule" Section (Volume + Ramp-Up + Schedule)
+            item(key = "sound_and_schedule_section") {
+                SoundAndScheduleSection(
                     volumePercent = targetVolumePercent,
+                    maxSteps = viewModel.maxRingVolumeIndex,
+                    minSteps = viewModel.minRingVolumeIndex,
                     onVolumeChange = { viewModel.setTargetVolumePercent(it) },
-                    onTestSound = { viewModel.playSoundPreview() }
+                    onTestSound = { viewModel.playSoundPreview() },
+                    isAscendingEnabled = isAscendingVolumeEnabled,
+                    ascendingDurationSec = ascendingDurationSec,
+                    onToggleAscending = { viewModel.toggleAscendingVolume(it) },
+                    onSetAscendingDuration = { viewModel.setAscendingDuration(it) },
+                    isScheduleEnabled = isScheduleEnabled,
+                    scheduleStartHour = scheduleStartHour,
+                    scheduleStartMinute = scheduleStartMinute,
+                    scheduleEndHour = scheduleEndHour,
+                    scheduleEndMinute = scheduleEndMinute,
+                    scheduleDays = scheduleDays,
+                    onToggleSchedule = { viewModel.toggleSchedule(it) },
+                    onSetScheduleTime = { sh, sm, eh, em -> viewModel.setScheduleTime(sh, sm, eh, em) },
+                    onToggleScheduleDay = { viewModel.toggleScheduleDay(it) }
                 )
             }
 
-            item {
-                ThemeSelectorCard(
-                    currentTheme = themeMode,
+            // 5. Unified "Activity & system" Section (Call Log + System Permissions + Theme Switch)
+            item(key = "activity_and_system_section") {
+                ActivityAndSystemSection(
+                    eventLogs = eventLogs,
+                    onAddVipFromLog = { viewModel.addContactFromLog(it) },
+                    onClearLogs = { viewModel.clearEventLogs() },
+                    allOptimal = allOptimal,
+                    isIgnoringBatteryOpt = isIgnoringBatteryOpt,
+                    isDndAccessGranted = isDndAccessGranted,
+                    isCallScreeningRoleHeld = isCallScreeningRoleHeld,
+                    hasPhonePermissions = hasPhonePermissions,
+                    onRequestBatteryOpt = { viewModel.requestIgnoreBatteryOptimizations() },
+                    onRequestDndAccess = { viewModel.openDndSettings() },
+                    onRequestCallScreeningRole = requestCallScreeningRoleAction,
+                    onRequestPhonePermissions = {
+                        permissionLauncher.launch(requiredPermissions.toTypedArray())
+                    },
+                    themeMode = themeMode,
                     onThemeSelected = { viewModel.setThemeMode(it) }
                 )
             }
 
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp, bottom = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "VIP Contacts",
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer
-                        ) {
-                            Text(
-                                text = "${vipContacts.size}",
-                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
-            if (vipContacts.isEmpty()) {
-                item {
-                    OutlinedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        shape = RoundedCornerShape(28.dp),
-                        colors = CardDefaults.outlinedCardColors(
-                            containerColor = MaterialTheme.cardContainerColor
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(36.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Surface(
-                                shape = RoundedCornerShape(20.dp),
-                                color = MaterialTheme.colorScheme.secondaryContainer,
-                                modifier = Modifier.size(64.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = Icons.Default.ContactPage,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(32.dp),
-                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "No VIP Contacts Added",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "Tap the Expressive '+' button below to whitelist contacts from your phonebook or enter numbers manually.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            }
-
-            items(
-                items = vipContacts,
-                key = { it.id }
-            ) { contact ->
-                VipContactCard(
-                    contact = contact,
-                    onDelete = { viewModel.removeVipContact(contact.id) }
+            // 6. Canonical AOSP Footer Info
+            item(key = "aosp_footer_info") {
+                CanonicalFooterInfo(
+                    text = stringResource(R.string.aosp_footer_info)
                 )
             }
         }
@@ -383,5 +260,121 @@ fun MainScreen(
                 showManualAddDialog = false
             }
         )
+    }
+}
+
+@Composable
+fun WhoCanReachSection(
+    isStarredContactsEnabled: Boolean,
+    hasContactsPermission: Boolean,
+    starredContactsCount: Int,
+    vipContacts: List<VipContact>,
+    onToggleStarredContacts: (Boolean) -> Unit,
+    onRemoveVipContact: (String) -> Unit,
+    onPickFromContacts: () -> Unit,
+    onAddManually: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val starredTitle = stringResource(R.string.rules_starred_title)
+    val starredSubtitle = when {
+        !hasContactsPermission -> stringResource(R.string.rules_starred_desc_no_access)
+        starredContactsCount > 0 -> stringResource(R.string.rules_starred_desc_with_count, starredContactsCount)
+        else -> stringResource(R.string.rules_starred_desc)
+    }
+
+    CanonicalSegmentedColumn(
+        title = stringResource(R.string.who_can_reach_title),
+        badgeText = if (vipContacts.isNotEmpty()) "${vipContacts.size}" else null,
+        modifier = modifier
+    ) {
+        // Segment 1: Starred Contacts Toggle
+        switchItem(
+            key = "starred_contacts_rule",
+            title = starredTitle,
+            subtitle = starredSubtitle,
+            // Without contacts access the rule cannot work, so show it as off and greyed out.
+            checked = isStarredContactsEnabled && hasContactsPermission,
+            onCheckedChange = onToggleStarredContacts,
+            enabled = hasContactsPermission
+        )
+
+        // Segments 2..N: VIP Contacts
+        vipContacts.forEach { contact ->
+            cardItem(key = contact.id) {
+                VipContactCard(
+                    contact = contact,
+                    onDelete = { onRemoveVipContact(contact.id) }
+                )
+            }
+        }
+
+        // Bottom Segment: Canonical AOSP Two-Target "Add VIP contact" Row
+        item(key = "add_vip_contact_action") { shape ->
+            AddVipContactSegment(
+                onPickFromContacts = onPickFromContacts,
+                onAddManually = onAddManually,
+                shape = shape
+            )
+        }
+    }
+}
+
+@Composable
+fun ActivityAndSystemSection(
+    eventLogs: List<CallEventLog>,
+    onAddVipFromLog: (CallEventLog) -> Unit,
+    onClearLogs: () -> Unit,
+    allOptimal: Boolean,
+    isIgnoringBatteryOpt: Boolean,
+    isDndAccessGranted: Boolean,
+    isCallScreeningRoleHeld: Boolean,
+    hasPhonePermissions: Boolean,
+    onRequestBatteryOpt: () -> Unit,
+    onRequestDndAccess: () -> Unit,
+    onRequestCallScreeningRole: () -> Unit,
+    onRequestPhonePermissions: () -> Unit,
+    themeMode: String,
+    onThemeSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    CanonicalSegmentedColumn(
+        title = stringResource(R.string.system_and_logs_title),
+        modifier = modifier
+    ) {
+        // Segment 1: Call Activity Log
+        item(key = "call_event_log") { shape ->
+            EventLogCard(
+                eventLogs = eventLogs,
+                onAddVipFromLog = onAddVipFromLog,
+                onClearLogs = onClearLogs,
+                shape = shape
+            )
+        }
+
+        // Segment 2: System Permissions Summary (calm collapsible row when optimal)
+        if (allOptimal) {
+            item(key = "system_health_optimal_summary") { shape ->
+                SystemHealthCollapsibleSegment(
+                    isIgnoringBatteryOpt = isIgnoringBatteryOpt,
+                    isDndAccessGranted = isDndAccessGranted,
+                    isCallScreeningRoleHeld = isCallScreeningRoleHeld,
+                    hasPhonePermissions = hasPhonePermissions,
+                    onRequestBatteryOpt = onRequestBatteryOpt,
+                    onRequestDndAccess = onRequestDndAccess,
+                    onRequestCallScreeningRole = onRequestCallScreeningRole,
+                    onRequestPhonePermissions = onRequestPhonePermissions,
+                    shape = shape
+                )
+            }
+        }
+
+        // Segment 3: Expressive Theme Switch
+        item(key = "app_theme_selector") { shape ->
+            ThemeSelectorSegment(
+                currentTheme = themeMode,
+                onThemeSelected = onThemeSelected,
+                shape = shape
+            )
+        }
     }
 }

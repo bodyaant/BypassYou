@@ -103,6 +103,14 @@ private val LightColorScheme = lightColorScheme(
     surfaceContainerHighest = LightSurfaceContainerHighest
 )
 
+val BypassShapes = androidx.compose.material3.Shapes(
+    extraSmall = com.example.bypassyou.ui.tokens.ShapeTokens.ExtraSmall,
+    small = com.example.bypassyou.ui.tokens.ShapeTokens.Small,
+    medium = com.example.bypassyou.ui.tokens.ShapeTokens.Medium,
+    large = com.example.bypassyou.ui.tokens.ShapeTokens.Large,
+    extraLarge = com.example.bypassyou.ui.tokens.ShapeTokens.ExtraLarge
+)
+
 @Composable
 fun BypassYouTheme(
     themeMode: String = "SYSTEM",
@@ -141,6 +149,7 @@ fun BypassYouTheme(
         MaterialTheme(
             colorScheme = colorScheme,
             typography = Typography,
+            shapes = BypassShapes,
             content = content
         )
     }

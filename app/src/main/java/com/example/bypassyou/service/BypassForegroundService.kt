@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.example.bypassyou.MainActivity
+import com.example.bypassyou.R
 
 class BypassForegroundService : Service() {
 
@@ -35,10 +36,10 @@ class BypassForegroundService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "BypassYou Background Protection",
+                getString(R.string.notification_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Keeps BypassYou active in the background to detect VIP calls"
+                description = getString(R.string.notification_channel_desc)
                 setShowBadge(false)
             }
             val notificationManager = getSystemService(NotificationManager::class.java)
@@ -55,8 +56,8 @@ class BypassForegroundService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("BypassYou is Active")
-            .setContentText("VIP contacts will ring even in Silent mode")
+            .setContentTitle(getString(com.example.bypassyou.R.string.notification_title))
+            .setContentText(getString(com.example.bypassyou.R.string.notification_desc))
             .setSmallIcon(android.R.drawable.ic_lock_silent_mode_off)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
