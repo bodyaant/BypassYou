@@ -1,3 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App Information -->
     <string name="app_name">BypassYou</string>
+    <string name="app_subtitle">Never miss important calls in Do Not Disturb</string>
+
+    <!-- Main Screen & Service Toggle -->
+    <string name="service_active_title">Call bypass is on</string>
+    <string name="service_paused_title">Call bypass is off</string>
+    <string name="service_active_subtitle">VIP calls will ring out loud even when silent mode is on</string>
+    <string name="service_paused_subtitle">Normal system sound and Do Not Disturb rules apply</string>
+
+    <!-- Settings Entry Card -->
+    <string name="settings_card_title">Settings &amp; diagnostics</string>
+    <string name="settings_card_subtitle">Permissions, volume, quiet hours, and theme</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_screen_title">Settings</string>
+
+    <!-- Permissions Alert Banner -->
+    <string name="permissions_required_title">Permissions needed</string>
+    <string name="permissions_required_desc">Phone and contacts access is required to detect incoming calls and check VIP status.</string>
+    <string name="permissions_grant_btn">Grant access</string>
+
+    <!-- Call Screening Banner -->
+    <string name="call_screening_banner_title">Call screening</string>
+    <string name="call_screening_banner_desc">Enable call screening to reliably catch incoming calls when the screen is locked.</string>
+    <string name="call_screening_set_btn">Turn on</string>
+
+    <!-- System Health & Diagnostics Card -->
+    <string name="health_card_title">System permissions</string>
+    <string name="health_optimal">All set up and working properly</string>
+    <string name="health_needs_action">Setup incomplete — tap below to fix</string>
+    <string name="health_badge_100">Healthy</string>
+    <string name="health_badge_attention">Action required</string>
+
+    <!-- Battery Optimization -->
+    <string name="health_battery_title">Background activity</string>
+    <string name="health_battery_optimal">Unrestricted — system won\'t put app to sleep</string>
+    <string name="health_battery_restricted">Battery restrictions may delay or miss calls</string>
+
+    <!-- DND Policy -->
+    <string name="health_dnd_title">Do Not Disturb override</string>
+    <string name="health_dnd_optimal">Granted — can sound ringtone during silent mode</string>
+    <string name="health_dnd_restricted">Permission required to ring while phone is silent</string>
+
+    <!-- Call Screening Service Item -->
+    <string name="health_screening_title">Call screening service</string>
+    <string name="health_screening_optimal">Active — instant call detection on Android 10+</string>
+    <string name="health_screening_restricted">Highly recommended for instant call detection</string>
+
+    <!-- Phone & Contacts Permission Item -->
+    <string name="health_permissions_title">Phone &amp; contacts access</string>
+    <string name="health_permissions_optimal">Granted — can identify incoming phone numbers</string>
+    <string name="health_permissions_restricted">Required to read caller ID and check your VIP list</string>
+
+    <!-- Health Action Buttons -->
+    <string name="health_action_allow">Allow</string>
+    <string name="health_action_configure">Set up</string>
+    <string name="health_action_enable">Enable</string>
+
+    <!-- Volume Card -->
+    <string name="volume_card_title">Ringer volume</string>
+    <string name="volume_card_subtitle">How loud VIP calls will sound when breaking through</string>
+    <string name="volume_test_sound_btn">Test sound</string>
+
+    <!-- Rules and Schedule Card -->
+    <string name="rules_card_title">Rules &amp; schedule</string>
+    <string name="rules_card_subtitle">Starred contacts, gradual volume ramp-up, and active hours</string>
+    <string name="rules_starred_title">Starred contacts</string>
+    <string name="rules_starred_desc_with_count">Always ring for %1$d starred contacts from phonebook ⭐</string>
+    <string name="rules_starred_desc">Ring for any contact marked as favorite in your phonebook</string>
+    <string name="rules_starred_desc_no_access">Allow contacts access above to use this</string>
+    <string name="rules_ascending_title">Gentle volume ramp-up</string>
+    <string name="rules_ascending_desc">Starts quietly and rises to target volume over %1$d s</string>
+    <string name="rules_seconds_short">%1$ds</string>
+    <string name="rules_schedule_title">Active schedule</string>
+    <string name="rules_schedule_active_desc">Only active between %1$s and %2$s</string>
+    <string name="rules_schedule_always_desc">Active 24/7 (around the clock)</string>
+    <string name="rules_schedule_start_btn">Start</string>
+    <string name="rules_schedule_end_btn">End</string>
+    <string name="rules_dialog_start_title">Start time</string>
+    <string name="rules_dialog_end_title">End time</string>
+
+    <!-- Event Log Card -->
+    <string name="event_log_title">Call activity</string>
+    <string name="event_log_empty_summary">No incoming calls logged yet</string>
+    <string name="event_log_count_summary">%1$d recent calls</string>
+    <string name="event_log_empty_desc">Incoming calls and their bypass status will show up here.</string>
+    <string name="event_log_clear_cd">Clear activity log</string>
+    <string name="event_log_add_vip_cd">Add to VIP list</string>
+
+    <!-- Event Log Reasons -->
+    <string name="event_log_reason_disabled">Protection off</string>
+    <string name="event_log_reason_outside_schedule">Outside schedule</string>
+    <string name="event_log_reason_regular_call">Standard call</string>
+    <string name="event_log_reason_vip_and_starred">VIP &amp; Starred ⭐</string>
+    <string name="event_log_reason_vip">VIP contact</string>
+    <string name="event_log_reason_starred">Starred contact ⭐</string>
+
+    <!-- Theme Selector Card -->
+    <string name="theme_card_title">App theme</string>
+    <string name="theme_card_subtitle">Choose your preferred appearance</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system_desc">Follow device system theme</string>
+    <string name="theme_light_desc">Always use light appearance</string>
+    <string name="theme_dark_desc">Always use dark appearance</string>
+
+    <!-- VIP Contacts Section -->
+    <string name="vip_section_title">VIP contacts</string>
+    <string name="vip_empty_title">No VIP contacts yet</string>
+    <string name="vip_empty_desc">Add important contacts whose calls must always ring through, even when your phone is on silent or Do Not Disturb.</string>
+    <string name="vip_delete_cd">Remove from VIP list</string>
+
+    <!-- Add Contact Menu & BottomSheet -->
+    <string name="fab_add_vip">Add VIP contact</string>
+    <string name="add_sheet_title">Add VIP contact</string>
+    <string name="add_sheet_subtitle">How would you like to add the contact?</string>
+    <string name="add_from_phonebook_title">Select from contacts</string>
+    <string name="add_from_phonebook_subtitle">Pick a contact directly from your address book</string>
+    <string name="add_manually_title">Enter manually</string>
+    <string name="add_manually_subtitle">Type a name and phone number yourself</string>
+
+    <!-- Manual Add Dialog -->
+    <string name="manual_dialog_title">New VIP contact</string>
+    <string name="manual_dialog_subtitle">Enter the details for the person whose calls should ring through</string>
+    <string name="manual_name_label">Name</string>
+    <string name="manual_name_placeholder">e.g., Mom, Work, Doctor</string>
+    <string name="manual_phone_label">Phone number</string>
+    <string name="manual_phone_placeholder">+1 555 123 4567</string>
+    <string name="manual_add_btn">Add to list</string>
+
+    <!-- Common Actions -->
+    <string name="action_ok">Done</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_back">Back</string>
+
+    <!-- Days of Week Short -->
+    <string name="day_mon">Mon</string>
+    <string name="day_tue">Tue</string>
+    <string name="day_wed">Wed</string>
+    <string name="day_thu">Thu</string>
+    <string name="day_fri">Fri</string>
+    <string name="day_sat">Sat</string>
+    <string name="day_sun">Sun</string>
+
+    <!-- Foreground Notification -->
+    <string name="notification_title">BypassYou is active</string>
+    <string name="notification_desc">VIP calls will ring through Do Not Disturb</string>
+    <string name="notification_channel_name">Background Protection Service</string>
+    <string name="notification_channel_desc">Keeps the service running in the background to detect VIP calls</string>
+
+    <!-- Quick Settings Tile -->
+    <string name="tile_subtitle_active">Active (%1$d VIP)</string>
+    <string name="tile_subtitle_inactive">Off</string>
+
+    <!-- Accessibility / Actions -->
+    <string name="cd_open_menu">Open menu</string>
+    <string name="cd_close_menu">Close menu</string>
+    <string name="turn_on_format">Turn on %1$s</string>
+    <string name="turn_off_format">Turn off %1$s</string>
+
+    <!-- Canonical AOSP Subpage Sections & Footer -->
+    <string name="who_can_reach_title">Who can reach you</string>
+    <string name="sound_and_rules_title">Sound &amp; schedule</string>
+    <string name="system_and_logs_title">Activity &amp; system</string>
+    <string name="aosp_footer_info">BypassYou automatically raises ringer volume for incoming calls from selected contacts and restores Silent or Do Not Disturb mode as soon as the call ends.</string>
 </resources>

@@ -9,35 +9,106 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
+val LocalIsDarkTheme = staticCompositionLocalOf { false }
+
+val MaterialTheme.cardContainerColor: Color
+    @Composable
+    get() = if (LocalIsDarkTheme.current) {
+        colorScheme.surfaceContainer
+    } else {
+        colorScheme.surfaceContainerLowest
+    }
+
+val MaterialTheme.screenBackgroundColor: Color
+    @Composable
+    get() = if (LocalIsDarkTheme.current) {
+        colorScheme.surface
+    } else {
+        colorScheme.surfaceContainerLow
+    }
+
+val MaterialTheme.isDarkTheme: Boolean
+    @Composable
+    get() = LocalIsDarkTheme.current
+
 private val DarkColorScheme = darkColorScheme(
-    primary = ExpressivePrimaryDark,
-    onPrimary = ExpressiveOnPrimaryDark,
-    primaryContainer = ExpressivePrimaryContainerDark,
-    onPrimaryContainer = ExpressiveOnPrimaryContainerDark,
-    surface = SurfaceContainerLowDark,
-    surfaceVariant = SurfaceContainerHighDark,
-    surfaceContainerHigh = SurfaceContainerHighDark,
-    surfaceContainerHighest = SurfaceContainerHighestDark,
-    error = ExpressiveCoralAlert,
-    errorContainer = ExpressiveCoralContainerDark
+    primary = DarkPrimary,
+    onPrimary = DarkOnPrimary,
+    primaryContainer = DarkPrimaryContainer,
+    onPrimaryContainer = DarkOnPrimaryContainer,
+    secondary = DarkSecondary,
+    onSecondary = DarkOnSecondary,
+    secondaryContainer = DarkSecondaryContainer,
+    onSecondaryContainer = DarkOnSecondaryContainer,
+    tertiary = DarkTertiary,
+    onTertiary = DarkOnTertiary,
+    tertiaryContainer = DarkTertiaryContainer,
+    onTertiaryContainer = DarkOnTertiaryContainer,
+    error = DarkError,
+    onError = DarkOnError,
+    errorContainer = DarkErrorContainer,
+    onErrorContainer = DarkOnErrorContainer,
+    background = DarkBackground,
+    onBackground = DarkOnBackground,
+    surface = DarkSurface,
+    onSurface = DarkOnSurface,
+    surfaceVariant = DarkSurfaceVariant,
+    onSurfaceVariant = DarkOnSurfaceVariant,
+    outline = DarkOutline,
+    outlineVariant = DarkOutlineVariant,
+    surfaceContainerLowest = DarkSurfaceContainerLowest,
+    surfaceContainerLow = DarkSurfaceContainerLow,
+    surfaceContainer = DarkSurfaceContainer,
+    surfaceContainerHigh = DarkSurfaceContainerHigh,
+    surfaceContainerHighest = DarkSurfaceContainerHighest
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = ExpressivePrimaryLight,
-    onPrimary = ExpressiveOnPrimaryLight,
-    primaryContainer = ExpressivePrimaryContainerLight,
-    onPrimaryContainer = ExpressiveOnPrimaryContainerLight,
-    surface = SurfaceContainerLowLight,
-    surfaceVariant = SurfaceContainerHighLight,
-    surfaceContainerHigh = SurfaceContainerHighLight,
-    surfaceContainerHighest = SurfaceContainerHighestLight,
-    error = ExpressiveCoralAlert,
-    errorContainer = ExpressiveCoralContainerLight
+    primary = LightPrimary,
+    onPrimary = LightOnPrimary,
+    primaryContainer = LightPrimaryContainer,
+    onPrimaryContainer = LightOnPrimaryContainer,
+    secondary = LightSecondary,
+    onSecondary = LightOnSecondary,
+    secondaryContainer = LightSecondaryContainer,
+    onSecondaryContainer = LightOnSecondaryContainer,
+    tertiary = LightTertiary,
+    onTertiary = LightOnTertiary,
+    tertiaryContainer = LightTertiaryContainer,
+    onTertiaryContainer = LightOnTertiaryContainer,
+    error = LightError,
+    onError = LightOnError,
+    errorContainer = LightErrorContainer,
+    onErrorContainer = LightOnErrorContainer,
+    background = LightBackground,
+    onBackground = LightOnBackground,
+    surface = LightSurface,
+    onSurface = LightOnSurface,
+    surfaceVariant = LightSurfaceVariant,
+    onSurfaceVariant = LightOnSurfaceVariant,
+    outline = LightOutline,
+    outlineVariant = LightOutlineVariant,
+    surfaceContainerLowest = LightSurfaceContainerLowest,
+    surfaceContainerLow = LightSurfaceContainerLow,
+    surfaceContainer = LightSurfaceContainer,
+    surfaceContainerHigh = LightSurfaceContainerHigh,
+    surfaceContainerHighest = LightSurfaceContainerHighest
+)
+
+val BypassShapes = androidx.compose.material3.Shapes(
+    extraSmall = com.example.bypassyou.ui.tokens.ShapeTokens.ExtraSmall,
+    small = com.example.bypassyou.ui.tokens.ShapeTokens.Small,
+    medium = com.example.bypassyou.ui.tokens.ShapeTokens.Medium,
+    large = com.example.bypassyou.ui.tokens.ShapeTokens.Large,
+    extraLarge = com.example.bypassyou.ui.tokens.ShapeTokens.ExtraLarge
 )
 
 @Composable
@@ -57,7 +128,6 @@ fun BypassYouTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
@@ -75,9 +145,12 @@ fun BypassYouTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(LocalIsDarkTheme provides darkTheme) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            shapes = BypassShapes,
+            content = content
+        )
+    }
 }

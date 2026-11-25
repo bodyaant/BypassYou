@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Information -->
+    <string name="app_name">BypassYou</string>
+    <string name="app_subtitle">Пропуск важных звонков в режиме «Не беспокоить»</string>
+
+    <!-- Main Screen & Service Toggle -->
+    <string name="service_active_title">Служба активна</string>
+    <string name="service_paused_title">Служба выключена</string>
+    <string name="service_active_subtitle">Звонки от важных контактов звучат даже в беззвучном режиме</string>
+    <string name="service_paused_subtitle">Действует стандартный беззвучный режим системы</string>
+
+    <!-- Settings Entry Card -->
+    <string name="settings_card_title">Параметры и разрешения</string>
+    <string name="settings_card_subtitle">Диагностика, громкость, расписание и тема</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_screen_title">Параметры</string>
+
+    <!-- Permissions Alert Banner -->
+    <string name="permissions_required_title">Необходимы разрешения</string>
+    <string name="permissions_required_desc">Требуется доступ к телефону и списку контактов для обработки входящих вызовов.</string>
+    <string name="permissions_grant_btn">Разрешить</string>
+
+    <!-- Call Screening Banner -->
+    <string name="call_screening_banner_title">Фильтрация вызовов</string>
+    <string name="call_screening_banner_desc">Включите для гарантированного перехвата звонков при заблокированном экране.</string>
+    <string name="call_screening_set_btn">Включить</string>
+
+    <!-- System Health & Diagnostics Card -->
+    <string name="health_card_title">Системные разрешения</string>
+    <string name="health_optimal">Все необходимые разрешения предоставлены</string>
+    <string name="health_needs_action">Требуется дополнительная настройка</string>
+    <string name="health_badge_100">В норме</string>
+    <string name="health_badge_attention">Внимание</string>
+
+    <!-- Battery Optimization -->
+    <string name="health_battery_title">Работа в фоновом режиме</string>
+    <string name="health_battery_optimal">Оптимизация батареи отключена</string>
+    <string name="health_battery_restricted">Система может ограничивать фоновую работу</string>
+
+    <!-- DND Policy -->
+    <string name="health_dnd_title">Режим «Не беспокоить»</string>
+    <string name="health_dnd_optimal">Управление громкостью беззвучного режима</string>
+    <string name="health_dnd_restricted">Рекомендуется для корректного звучания</string>
+
+    <!-- Call Screening Service Item -->
+    <string name="health_screening_title">Служба фильтрации звонков</string>
+    <string name="health_screening_optimal">Активно (Call Screening)</string>
+    <string name="health_screening_restricted">Рекомендуется для точного перехвата</string>
+
+    <!-- Phone & Contacts Permission Item -->
+    <string name="health_permissions_title">Телефон и контакты</string>
+    <string name="health_permissions_optimal">Доступ к вызовам и контактам предоставлен</string>
+    <string name="health_permissions_restricted">Требуются разрешения для перехвата вызовов</string>
+
+    <!-- Health Action Buttons -->
+    <string name="health_action_allow">Разрешить</string>
+    <string name="health_action_configure">Настроить</string>
+    <string name="health_action_enable">Включить</string>
+
+    <!-- Volume Card -->
+    <string name="volume_card_title">Громкость вызова</string>
+    <string name="volume_card_subtitle">Уровень громкости при входящем звонке от важного контакта</string>
+    <string name="volume_test_sound_btn">Проверить звук</string>
+
+    <!-- Rules and Schedule Card -->
+    <string name="rules_card_title">Правила и расписание</string>
+    <string name="rules_card_subtitle">Избранные контакты, нарастание звука и график работы</string>
+    <string name="rules_starred_title">Контакты из «Избранного»</string>
+    <string name="rules_starred_desc_with_count">Пропускать звонки от %1$d контактов со звездочкой ⭐</string>
+    <string name="rules_starred_desc">Пропускать звонки от контактов с отметкой «Избранное»</string>
+    <string name="rules_ascending_title">Плавное нарастание громкости</string>
+    <string name="rules_ascending_desc">Постепенное повышение громкости в течение %1$d сек.</string>
+    <string name="rules_seconds_short">%1$dс</string>
+    <string name="rules_schedule_title">Расписание работы</string>
+    <string name="rules_schedule_active_desc">Активно с %1$s до %2$s</string>
+    <string name="rules_schedule_always_desc">Работает круглосуточно (без ограничений)</string>
+    <string name="rules_schedule_start_btn">С</string>
+    <string name="rules_schedule_end_btn">До</string>
+    <string name="rules_dialog_start_title">Время включения</string>
+    <string name="rules_dialog_end_title">Время выключения</string>
+
+    <!-- Event Log Card -->
+    <string name="event_log_title">Журнал вызовов</string>
+    <string name="event_log_empty_summary">История вызовов пуста</string>
+    <string name="event_log_count_summary">%1$d последних записей</string>
+    <string name="event_log_empty_desc">Здесь будут отображаться зафиксированные входящие звонки</string>
+    <string name="event_log_clear_cd">Очистить журнал</string>
+    <string name="event_log_add_vip_cd">Добавить в важные</string>
+
+    <!-- Event Log Reasons -->
+    <string name="event_log_reason_disabled">Служба выключена</string>
+    <string name="event_log_reason_outside_schedule">Вне расписания</string>
+    <string name="event_log_reason_regular_call">Обычный вызов</string>
+    <string name="event_log_reason_vip_and_starred">Важный и Избранный ⭐</string>
+    <string name="event_log_reason_vip">Важный контакт</string>
+    <string name="event_log_reason_starred">Избранный контакт ⭐</string>
+
+    <!-- Theme Selector Card -->
+    <string name="theme_card_title">Тема оформления</string>
+    <string name="theme_card_subtitle">Цветовая схема приложения</string>
+    <string name="theme_system">Авто</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="theme_system_desc">Следовать системной теме устройства</string>
+    <string name="theme_light_desc">Всегда использовать светлое оформление</string>
+    <string name="theme_dark_desc">Всегда использовать тёмное оформление</string>
+
+    <!-- VIP Contacts Section -->
+    <string name="vip_section_title">Важные контакты</string>
+    <string name="vip_empty_title">Список контактов пуст</string>
+    <string name="vip_empty_desc">Добавьте номера людей, чьи звонки должны звучать даже при включенном беззвучном режиме.</string>
+    <string name="vip_delete_cd">Удалить из списка</string>
+
+    <!-- Add Contact Menu & BottomSheet -->
+    <string name="fab_add_vip">Добавить контакт</string>
+    <string name="add_sheet_title">Добавить важный контакт</string>
+    <string name="add_sheet_subtitle">Выберите способ добавления номера:</string>
+    <string name="add_from_phonebook_title">Выбрать из телефонной книги</string>
+    <string name="add_from_phonebook_subtitle">Импорт номера напрямую из адресной книги</string>
+    <string name="add_manually_title">Ввести номер вручную</string>
+    <string name="add_manually_subtitle">Указать имя и номер телефона вручную</string>
+
+    <!-- Manual Add Dialog -->
+    <string name="manual_dialog_title">Новый контакт</string>
+    <string name="manual_dialog_subtitle">Укажите имя и номер телефона для списка исключений</string>
+    <string name="manual_name_label">Имя контакта</string>
+    <string name="manual_name_placeholder">Например: Семья, Работа</string>
+    <string name="manual_phone_label">Номер телефона</string>
+    <string name="manual_phone_placeholder">+7 999 123 45 67</string>
+    <string name="manual_add_btn">Добавить</string>
+
+    <!-- Common Actions -->
+    <string name="action_ok">Готово</string>
+    <string name="action_cancel">Отмена</string>
+    <string name="action_back">Назад</string>
+
+    <!-- Days of Week Short -->
+    <string name="day_mon">Пн</string>
+    <string name="day_tue">Вт</string>
+    <string name="day_wed">Ср</string>
+    <string name="day_thu">Чт</string>
+    <string name="day_fri">Пт</string>
+    <string name="day_sat">Сб</string>
+    <string name="day_sun">Вс</string>
+
+    <!-- Foreground Notification -->
+    <string name="notification_title">BypassYou активен</string>
+    <string name="notification_desc">Вызовы от важных контактов воспроизводятся со звуком</string>
+    <string name="notification_channel_name">Фоновая служба BypassYou</string>
+    <string name="notification_channel_desc">Поддерживает работу службы для своевременного перехвата вызовов</string>
+
+    <!-- Quick Settings Tile -->
+    <string name="tile_subtitle_active">Активен (%1$d VIP)</string>
+    <string name="tile_subtitle_inactive">Выключен</string>
+
+    <!-- Accessibility / Actions -->
+    <string name="cd_open_menu">Открыть меню</string>
+    <string name="cd_close_menu">Закрыть меню</string>
+    <string name="turn_on_format">Включить: %1$s</string>
+    <string name="turn_off_format">Выключить: %1$s</string>
+
+    <!-- Canonical AOSP Subpage Sections & Footer -->
+    <string name="who_can_reach_title">Кто может дозвониться</string>
+    <string name="sound_and_rules_title">Звук и расписание</string>
+    <string name="system_and_logs_title">Журнал и система</string>
+    <string name="aosp_footer_info">BypassYou автоматически повышает громкость рингтона при входящем вызове от выбранных контактов и возвращает исходный беззвучный режим или режим «Не беспокоить» сразу после завершения звонка.</string>
+</resources>
