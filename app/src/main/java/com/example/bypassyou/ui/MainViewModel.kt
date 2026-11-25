@@ -99,7 +99,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _hasContactsPermission = MutableStateFlow(false)
     val hasContactsPermission: StateFlow<Boolean> = _hasContactsPermission.asStateFlow()
 
+    // The Quick Settings tile writes isBypassEnabled directly; keep the hero switch in sync.
+    // Held in a field because SharedPreferences keeps listeners only weakly.
+    private val prefsListener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+        _isBypassEnabled.value = settingsRepository.isBypassEnabled
+    }
+
     init {
+        settingsRepository.registerChangeListener(prefsListener)
         loadVipContacts()
         refreshEventLogs()
         refreshSystemIntegrity()
@@ -342,6 +349,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             vipRepository.addVipContact(vip)
             loadVipContacts()
         }
+    }
+
+    override fun onCleared() {
+        settingsRepository.unregisterChangeListener(prefsListener)
     }
 
     fun playSoundPreview() {

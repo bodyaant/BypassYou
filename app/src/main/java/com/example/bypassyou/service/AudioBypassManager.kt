@@ -36,7 +36,6 @@ class AudioBypassManager private constructor(context: Context) {
     private var mediaPlayer: MediaPlayer? = null
     private var activePreviewMp: MediaPlayer? = null
 
-    private var originalRingerMode: Int? = null
     private var originalRingVolume: Int? = null
 
     private var ascendingRunnable: Runnable? = null
@@ -203,15 +202,9 @@ class AudioBypassManager private constructor(context: Context) {
             originalRingVolume?.let { vol ->
                 audioManager.setStreamVolume(AudioManager.STREAM_RING, vol, 0)
             }
-            originalRingerMode?.let { mode ->
-                if (notificationManager?.isNotificationPolicyAccessGranted == true) {
-                    audioManager.ringerMode = mode
-                }
-            }
         } catch (e: Exception) {
             Log.w(TAG, "Could not restore original ringer volume", e)
         } finally {
-            originalRingerMode = null
             originalRingVolume = null
         }
     }

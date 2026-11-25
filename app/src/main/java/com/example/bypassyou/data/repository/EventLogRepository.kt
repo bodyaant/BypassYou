@@ -38,6 +38,13 @@ class EventLogRepository(context: Context) {
 
     fun addLog(log: CallEventLog) {
         val current = getLogs().toMutableList()
+        // CallScreeningService and PhoneCallReceiver both report the same ringing call.
+        val last = current.firstOrNull()
+        if (last != null && last.phoneNumber == log.phoneNumber &&
+            log.timestamp - last.timestamp in 0 until DUPLICATE_WINDOW_MS
+        ) {
+            return
+        }
         current.add(0, log)
         val trimmed = if (current.size > MAX_LOGS) current.take(MAX_LOGS) else current
         saveLogs(trimmed)
@@ -69,5 +76,6 @@ class EventLogRepository(context: Context) {
         private const val PREFS_NAME = "bypass_you_event_logs"
         private const val KEY_LOGS = "event_logs_list"
         private const val MAX_LOGS = 50
+        private const val DUPLICATE_WINDOW_MS = 5_000L
     }
 }

@@ -176,35 +176,38 @@ object SystemIntegrityHelper {
 
     fun isScheduleActiveNow(settings: SettingsRepository): Boolean {
         if (!settings.isScheduleEnabled) return true
-
         val calendar = Calendar.getInstance()
-        val currentDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) // 1=Sunday, 2=Mon...
-        // Convert to 1=Mon, 2=Tue, ..., 7=Sun
-        val dayIndexStr = when (currentDayOfWeek) {
-            Calendar.MONDAY -> "1"
-            Calendar.TUESDAY -> "2"
-            Calendar.WEDNESDAY -> "3"
-            Calendar.THURSDAY -> "4"
-            Calendar.FRIDAY -> "5"
-            Calendar.SATURDAY -> "6"
-            Calendar.SUNDAY -> "7"
-            else -> "1"
-        }
+        return isScheduleActive(
+            dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK),
+            currentMinutes = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE),
+            startMinutes = settings.scheduleStartHour * 60 + settings.scheduleStartMinute,
+            endMinutes = settings.scheduleEndHour * 60 + settings.scheduleEndMinute,
+            days = settings.scheduleDays
+        )
+    }
 
-        if (!settings.scheduleDays.contains(dayIndexStr)) {
-            return false
-        }
-
-        val currentMinutes = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE)
-        val startMinutes = settings.scheduleStartHour * 60 + settings.scheduleStartMinute
-        val endMinutes = settings.scheduleEndHour * 60 + settings.scheduleEndMinute
+    /**
+     * [dayOfWeek] is a [Calendar.DAY_OF_WEEK] value; [days] uses "1"=Mon .. "7"=Sun.
+     * For an overnight range (e.g. Fri 23:00 to 07:00) the morning part belongs to the
+     * day the range started on, so it is checked against yesterday.
+     */
+    internal fun isScheduleActive(
+        dayOfWeek: Int,
+        currentMinutes: Int,
+        startMinutes: Int,
+        endMinutes: Int,
+        days: Set<String>
+    ): Boolean {
+        // Calendar: 1=Sun..7=Sat -> 1=Mon..7=Sun
+        fun dayKey(calendarDay: Int) = (((calendarDay + 5) % 7) + 1).toString()
+        val today = dayKey(dayOfWeek)
+        val yesterday = dayKey(if (dayOfWeek == Calendar.SUNDAY) Calendar.SATURDAY else dayOfWeek - 1)
 
         return if (startMinutes <= endMinutes) {
-            // Same day range (e.g. 09:00 to 18:00)
-            currentMinutes in startMinutes..endMinutes
+            today in days && currentMinutes in startMinutes..endMinutes
         } else {
-            // Overnight range (e.g. 23:00 to 07:00)
-            currentMinutes >= startMinutes || currentMinutes <= endMinutes
+            (today in days && currentMinutes >= startMinutes) ||
+                (yesterday in days && currentMinutes <= endMinutes)
         }
     }
 }

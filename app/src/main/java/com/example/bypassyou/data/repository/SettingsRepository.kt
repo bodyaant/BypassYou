@@ -7,6 +7,12 @@ class SettingsRepository(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
+    fun registerChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) =
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+
+    fun unregisterChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) =
+        prefs.unregisterOnSharedPreferenceChangeListener(listener)
+
     var isBypassEnabled: Boolean
         get() = prefs.getBoolean(KEY_BYPASS_ENABLED, true)
         set(value) = prefs.edit().putBoolean(KEY_BYPASS_ENABLED, value).apply()
