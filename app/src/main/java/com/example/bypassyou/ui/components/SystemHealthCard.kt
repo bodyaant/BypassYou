@@ -183,7 +183,6 @@ fun SystemHealthCollapsibleSegment(
  */
 @Composable
 fun SystemHealthCard(
-    isServiceActive: Boolean,
     isIgnoringBatteryOpt: Boolean,
     isDndAccessGranted: Boolean,
     isCallScreeningRoleHeld: Boolean,

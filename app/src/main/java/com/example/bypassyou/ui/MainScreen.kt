@@ -161,7 +161,6 @@ fun MainScreen(
             if (!allOptimal) {
                 item(key = "urgent_system_health") {
                     SystemHealthCard(
-                        isServiceActive = isBypassEnabled,
                         isIgnoringBatteryOpt = isIgnoringBatteryOpt,
                         isDndAccessGranted = isDndAccessGranted,
                         isCallScreeningRoleHeld = isCallScreeningRoleHeld,

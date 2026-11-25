@@ -119,30 +119,3 @@ fun VolumeSettingSegment(
     }
 }
 
-/**
- * Standalone wrapper around [VolumeSettingSegment] for backwards compatibility.
- */
-@Composable
-fun VolumeSettingCard(
-    volumePercent: Int,
-    maxSteps: Int = 15,
-    minSteps: Int = 0,
-    onVolumeChange: (Int) -> Unit,
-    onTestSound: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    CanonicalSegmentedColumn(
-        modifier = modifier
-    ) {
-        item(key = "volume_setting_card") { shape ->
-            VolumeSettingSegment(
-                volumePercent = volumePercent,
-                maxSteps = maxSteps,
-                minSteps = minSteps,
-                onVolumeChange = onVolumeChange,
-                onTestSound = onTestSound,
-                shape = shape
-            )
-        }
-    }
-}

@@ -191,24 +191,3 @@ fun ThemeSelectorSegment(
     }
 }
 
-/**
- * Standalone wrapper around [ThemeSelectorSegment].
- */
-@Composable
-fun ThemeSelectorCard(
-    currentTheme: String,
-    onThemeSelected: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    CanonicalSegmentedColumn(
-        modifier = modifier
-    ) {
-        item(key = "theme_selector_card") { shape ->
-            ThemeSelectorSegment(
-                currentTheme = currentTheme,
-                onThemeSelected = onThemeSelected,
-                shape = shape
-            )
-        }
-    }
-}
